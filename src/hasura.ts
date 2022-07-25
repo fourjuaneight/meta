@@ -18,7 +18,7 @@ import {
 export const queryMetaItems = async (table: Tables): Promise<Meta[]> => {
   const query = `
     {
-      media_${table}(order_by: {name: asc}) {
+      meta_${table}(order_by: {name: asc}) {
         id
         name
         table
@@ -68,7 +68,7 @@ export const searchMetaItems = async (
 ): Promise<Meta[]> => {
   const query = `
     {
-      media_${table}(
+      meta_${table}(
         order_by: {name: asc},
         where: {name: {_iregex: ".*${pattern}.*"}}
       ) {
