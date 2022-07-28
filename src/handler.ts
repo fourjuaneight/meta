@@ -104,7 +104,7 @@ const handleAction = async (payload: RequestPayload): Promise<Response> => {
         break;
       }
       default: {
-        const queryItems = await queryMetaItems(payload.table);
+        const queryItems = await queryMetaItems(payload.table, payload.data);
 
         return new Response(
           JSON.stringify({

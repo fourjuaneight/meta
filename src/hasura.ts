@@ -13,10 +13,14 @@ import {
  * @async
  *
  * @param {Tables} table
+ * @param {[Meta]} data
  * @returns {Promise<Meta[]>}
  */
-export const queryMetaItems = async (table: Tables): Promise<Meta[]> => {
-  const query = `
+export const queryMetaItems = async (
+  table: Tables,
+  data?: Meta
+): Promise<Meta[]> => {
+  let query = `
     {
       meta_${table}(order_by: {name: asc}) {
         id
@@ -26,6 +30,25 @@ export const queryMetaItems = async (table: Tables): Promise<Meta[]> => {
       }
     }
   `;
+
+  if (data) {
+    query = `
+      {
+        meta_${table}(
+          order_by: {name: asc},
+          where: {
+            schema: {_eq: "${data.schema}"},
+            table: {_eq: "${data.table}"}
+          }
+        ) {
+          id
+          name
+          table
+          schema
+        }
+      }
+    `;
+  }
 
   try {
     const request = await fetch(`${HASURA_ENDPOINT}`, {
