@@ -5,7 +5,7 @@ export type Tables = 'categories' | 'genres' | 'platforms' | 'tags';
 
 export interface Meta {
   id?: string;
-  name: string;
+  name?: string;
   table: string;
   schema: string;
 }
