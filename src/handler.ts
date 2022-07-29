@@ -4,6 +4,7 @@ import {
   searchMetaItems,
   updateMetaItem,
 } from './hasura';
+import { version } from '../package.json';
 
 import { Meta, RequestPayload } from './typings.d';
 
@@ -67,6 +68,7 @@ const handleAction = async (payload: RequestPayload): Promise<Response> => {
             saved,
             table: payload.table,
             location: payload.type,
+            version,
           }),
           responseInit
         );
@@ -85,6 +87,7 @@ const handleAction = async (payload: RequestPayload): Promise<Response> => {
             updated,
             table: payload.table,
             location: payload.type,
+            version,
           }),
           responseInit
         );
@@ -98,6 +101,7 @@ const handleAction = async (payload: RequestPayload): Promise<Response> => {
           JSON.stringify({
             items: searchItems,
             table: payload.table,
+            version,
           }),
           responseInit
         );
@@ -110,6 +114,7 @@ const handleAction = async (payload: RequestPayload): Promise<Response> => {
           JSON.stringify({
             items: queryItems,
             table: payload.table,
+            version,
           }),
           responseInit
         );
@@ -119,7 +124,12 @@ const handleAction = async (payload: RequestPayload): Promise<Response> => {
   } catch (error) {
     console.log('handleAction', error);
     return new Response(
-      JSON.stringify({ error, table: payload.table, location: payload.type }),
+      JSON.stringify({
+        error,
+        table: payload.table,
+        location: payload.type,
+        version,
+      }),
       errReqBody
     );
   }
@@ -136,7 +146,7 @@ const handleAction = async (payload: RequestPayload): Promise<Response> => {
 export const handleRequest = async (request: Request): Promise<Response> => {
   // POST requests only
   if (request.method !== 'POST') {
-    return new Response(null, {
+    return new Response(JSON.stringify({ version }), {
       status: 405,
       statusText: 'Method Not Allowed',
     });
@@ -145,7 +155,10 @@ export const handleRequest = async (request: Request): Promise<Response> => {
   // content-type check (required)
   if (!request.headers.has('content-type')) {
     return new Response(
-      JSON.stringify({ error: "Please provide 'content-type' header." }),
+      JSON.stringify({
+        error: "Please provide 'content-type' header.",
+        version,
+      }),
       badReqBody
     );
   }
@@ -160,38 +173,39 @@ export const handleRequest = async (request: Request): Promise<Response> => {
     switch (true) {
       case !payload.type:
         return new Response(
-          JSON.stringify({ error: "Missing 'type' parameter." }),
+          JSON.stringify({ error: "Missing 'type' parameter.", version }),
           badReqBody
         );
       case !payload.table:
         return new Response(
-          JSON.stringify({ error: "Missing 'table' parameter." }),
+          JSON.stringify({ error: "Missing 'table' parameter.", version }),
           badReqBody
         );
       case payload.type === 'Insert' && missingData(payload.data):
         return new Response(
-          JSON.stringify({ error: 'Missing Insert data.' }),
+          JSON.stringify({ error: 'Missing Insert data.', version }),
           badReqBody
         );
       case payload.type === 'Update' && missingData(payload.data):
         return new Response(
-          JSON.stringify({ error: 'Missing Update data.' }),
+          JSON.stringify({ error: 'Missing Update data.', version }),
           badReqBody
         );
       case payload.type === 'Search' && !payload.query:
         return new Response(
-          JSON.stringify({ error: 'Missing Search query.' }),
+          JSON.stringify({ error: 'Missing Search query.', version }),
           badReqBody
         );
       case !key:
         return new Response(
-          JSON.stringify({ error: "Missing 'key' header." }),
+          JSON.stringify({ error: "Missing 'key' header.", version }),
           noAuthReqBody
         );
       case key !== AUTH_KEY:
         return new Response(
           JSON.stringify({
             error: "You're not authorized to access this API.",
+            version,
           }),
           noAuthReqBody
         );
@@ -202,7 +216,7 @@ export const handleRequest = async (request: Request): Promise<Response> => {
   }
 
   // default to bad content-type
-  return new Response(null, {
+  return new Response(JSON.stringify({ version }), {
     status: 415,
     statusText: 'Unsupported Media Type',
   });
